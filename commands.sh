@@ -44,3 +44,23 @@ cgset -r cpu.cfs_period_us=1000000 $UUID
 
 # UUIDで指定したコントロールグループに対し、cpuサブシステムのcfs_quota_usを300usに指定（割り当ての単位はマイクロ秒。ここでは上記の制限値の30%を割り当てる）
 cgset -r cpu.cfs_quota_us=300000 $UUID
+
+
+## コンテナの作成
+
+CMD="/bin/sh"
+cgexec -g cpu,memory:$UUID \
+unshare -muinpfr /bin/sh -c "
+  mount -t proc proc $ROOTFS/proc &&
+  touch $ROOTFS$(tty); mount --bind $(tty) $ROOTFS$(tty) &&
+  touch $ROOTFS/dev/pts/ptmx; mount --bind /dev/pts/ptmx $ROOTFS/dev/pts/ptmx &&
+  ln -sf /dev/pts/ptmx $ROOTFS/dev/ptmx &&
+  touch $ROOTFS/dev/null && mount --bind /dev/null $ROOTFS/dev/null &&
+  /bin/hostname $UUID &&
+  exec capsh --chroot=$ROOTFS --drop=cap_sys_chroot -- -c 'exec $CMD'
+"
+
+# 作成したルートファイルシステムとcgroupを削除して、後片付け
+sudo cgdelete -r -g cpu,memory:$UUID
+rm -rf $ROOTFS
+
