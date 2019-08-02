@@ -49,7 +49,14 @@ cgset -r cpu.cfs_quota_us=300000 $UUID
 ## コンテナの作成
 
 CMD="/bin/sh"
+
+# cgexecで、cgroup 内でプロセスを開始する。
+# 書式） cgexec -g subsystems:path_to_cgroup command arguments
+# subsystems .. カンマ区切りのサブシステム一覧。*を指定すると、利用可能なすべてのサブシステムに関連付けられたプロセスを指すことができる。
+#               コンテナとして外部から独立させたいため、-g オプションを使い、サブシステムごとに同じ名前で作成したcgroup内で、プロセスを開始する。
+#               上記で、cpuとmemoryサブシステムにUUIDの名前でcgroupを作成しているので、
 cgexec -g cpu,memory:$UUID \
+# 
 unshare -muinpfr /bin/sh -c "
   mount -t proc proc $ROOTFS/proc &&
   touch $ROOTFS$(tty); mount --bind $(tty) $ROOTFS$(tty) &&
