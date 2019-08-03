@@ -54,9 +54,16 @@ CMD="/bin/sh"
 # 書式） cgexec -g subsystems:path_to_cgroup command arguments
 # subsystems .. カンマ区切りのサブシステム一覧。*を指定すると、利用可能なすべてのサブシステムに関連付けられたプロセスを指すことができる。
 #               コンテナとして外部から独立させたいため、-g オプションを使い、サブシステムごとに同じ名前で作成したcgroup内で、プロセスを開始する。
-#               上記で、cpuとmemoryサブシステムにUUIDの名前でcgroupを作成しているので、
+#               cpuとmemoryサブシステムにUUIDの名前でcgroupを作成しているので、サブシステムごとにプロセスが開始される。
+# command    .. 実行するコマンド
+# arguments  .. 実行するコマンドの引数 
 cgexec -g cpu,memory:$UUID \
-# 
+
+# unshareは、プロセスが新しいプロセスを生成することなく、
+# 共有実行コンテキストを制御するために使う。コンテキストが制御される単位をNamespaceという。
+# 書式） unshare [options] <program> [<argument>...]
+# /bin/shコマンドの実行をNamespaceのなかで実行させることで、コマンドが他から干渉されなくなる。
+#   -m .. mount名前空間
 unshare -muinpfr /bin/sh -c "
   mount -t proc proc $ROOTFS/proc &&
   touch $ROOTFS$(tty); mount --bind $(tty) $ROOTFS$(tty) &&
