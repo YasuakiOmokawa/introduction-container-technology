@@ -62,8 +62,16 @@ cgexec -g cpu,memory:$UUID \
 # unshareは、プロセスが新しいプロセスを生成することなく、
 # 共有実行コンテキストを制御するために使う。コンテキストが制御される単位をNamespaceという。
 # 書式） unshare [options] <program> [<argument>...]
-# /bin/shコマンドの実行をNamespaceのなかで実行させることで、コマンドが他から干渉されなくなる。
+# /bin/shコマンドの実行をNamespaceのなかで実行させることで、他から干渉されなくなる。干渉されたくないリソースの指定は下記オプションで指定できる。
 #   -m .. mount名前空間
+#   -u .. UTS名前空間。node名とdomain名を分離
+#   -i .. IPC(Inter-Process Communication:プロセス間通信)名前空間。メッセージ・キュー、 セマフォ、共有メモリを分離
+#   -n .. network名前空間。
+#   -p .. pid名前空間。
+#   -f .. プロセスフォークを分離。
+#   -r .. UID/GIDを分離。異なる名前空間で同じUIDのユーザーを作ることができ、
+#         root(UID=0)を名前空間内のroot権限のみに限定する。
+
 unshare -muinpfr /bin/sh -c "
   mount -t proc proc $ROOTFS/proc &&
   touch $ROOTFS$(tty); mount --bind $(tty) $ROOTFS$(tty) &&
