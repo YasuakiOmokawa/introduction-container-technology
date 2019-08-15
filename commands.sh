@@ -57,8 +57,7 @@ CMD="/bin/sh"
 #               cpuとmemoryサブシステムにUUIDの名前でcgroupを作成しているので、サブシステムごとにプロセスが開始される。
 # command    .. 実行するコマンド
 # arguments  .. 実行するコマンドの引数 
-cgexec -g cpu,memory:$UUID \
-
+#
 # unshareは、プロセスが新しいプロセスを生成することなく、
 # 共有実行コンテキストを制御するために使う。コンテキストが制御される単位をNamespaceという。
 # 書式） unshare [options] <program> [<argument>...]
@@ -71,7 +70,7 @@ cgexec -g cpu,memory:$UUID \
 #   -f .. プロセスフォークを分離。
 #   -r .. UID/GIDを分離。異なる名前空間で同じUIDのユーザーを作ることができ、
 #         root(UID=0)を名前空間内のroot権限のみに限定する。
-
+cgexec -g cpu,memory:$UUID \
 unshare -muinpfr /bin/sh -c "
   mount -t proc proc $ROOTFS/proc &&
   touch $ROOTFS$(tty); mount --bind $(tty) $ROOTFS$(tty) &&
