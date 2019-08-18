@@ -85,3 +85,23 @@ unshare -muinpfr /bin/sh -c "
 sudo cgdelete -r -g cpu,memory:$UUID
 rm -rf $ROOTFS
 
+
+## Namespaceの学習
+
+# 現在のNamespaceとPID1のNamespaceを比較して、同じNamespaceを参照していることを確認
+# ※ ls -l のシンボリックリンクの箇所のみ比較したかったので、下記のようなコマンドになった。差異は出なかったので、
+# 同じNamespaceを参照していることが確認できた。
+#
+# 例） ls -l /proc/$$/ns
+# total 0
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 cgroup -> 'cgroup:[4026531835]'
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 ipc -> 'ipc:[4026531839]'
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 mnt -> 'mnt:[4026531840]'
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 net -> 'net:[4026532041]'
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 pid -> 'pid:[4026531836]'
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 pid_for_children -> 'pid:[4026531836]'
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 user -> 'user:[4026531837]'
+# lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 uts -> 'uts:[4026531838]'
+diff <(ls -l /proc/$$/ns | perl -alne 'print "$F[8] $F[9] $F[10]"') <(sudo ls -l /proc/1/ns | perl -alne 'print "$F[8] $F[9] $F[10]"')
+
+
