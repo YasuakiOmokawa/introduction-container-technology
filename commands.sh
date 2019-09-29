@@ -104,4 +104,18 @@ rm -rf $ROOTFS
 # lrwxrwxrwx 1 ubuntu ubuntu 0 Aug 18 08:22 uts -> 'uts:[4026531838]'
 diff <(ls -l /proc/$$/ns | perl -alne 'print "$F[8] $F[9] $F[10]"') <(sudo ls -l /proc/1/ns | perl -alne 'print "$F[8] $F[9] $F[10]"')
 
+# 実行中のプロセスのNamespaceに接続して指定したコマンド実行できる。
+# コマンド内部では現在のプロセスを既存のNamespaceに関連付けるsetns(2)を実行。
+# ちなみに、コマンドの後ろについてる(2)というのは、コマンドのセクションの名前。2はシステムコールのこと。
+# 参考) https://www.atmarkit.co.jp/flinux/rensai/linuxtips/073mannum.html
+# UTSとUserのNamespaceを隔離し、ホスト名をfoobarに変更し、15秒スリープさせる
+unshare -ur /bin/sh -c 'hostname foobar; sleep 15' &
+# バックグラウンドで起動した上記のコマンドのプロセスを取得
+PID=$(jobs -p)
+# nsenterで上記のプロセスのホスト名を取得
+#  -u .. UTS Namespaceを指定。
+#  -t .. ターゲットにするPIDを指定
+sudo nsenter -u -t $PID hostname
+
+
 
