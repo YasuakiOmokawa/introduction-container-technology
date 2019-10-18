@@ -117,5 +117,19 @@ PID=$(jobs -p)
 #  -t .. ターゲットにするPIDを指定
 sudo nsenter -u -t $PID hostname
 
-
+# 関連するすべてのプロセスが消えても、Namespaceを維持する。
+# /proc/PID/ns 以下のファイルをbind mountすることで維持できる。
+# bind mountとは。。シンボリックリンクに似た機能だが、マウントしている点が違う。
+# マウント済の既存のディレクトリを別のディレクトリにマウントさせる機能。
+# http://aikotobaha.blogspot.com/2011/10/bind-mount.html
+# 設定ファイルのあるディレクトリ/etc/conf/みたいな箇所のコピーディレクトリを作って設定ファイルを弄り、bindマウントして設定ファイルの動作確認をする。
+# OKだったら、弄ったコピーディレクトリのファイルをディレクトリ丸ごとコピー元に上書きしてしまう。
+# ファイル単位で編集するとディレクトリレベルで設定を読み込むアプリケーションだと対応できないので、独立した領域で編集・テストすると安全ですよ。
+touch ns_uts
+sudo unshare --uts=ns_uts /bin/sh -c 'hostname foobar'
+# bind mountされているか確認
+mount | grep ns_uts
+# プロセスとして終了しているが、bind mountされたファイルにコマンドを送ると以前のNamespaceをプロセスに関連付けられる。
+# よって、仮想化インスタンスを追加せずにカーネルリソースを隔離できる
+sudo nsenter --uts=ns_uts hostname
 
