@@ -133,3 +133,25 @@ mount | grep ns_uts
 # よって、仮想化インスタンスを追加せずにカーネルリソースを隔離できる
 sudo nsenter --uts=ns_uts hostname
 
+
+## cgroupの学習
+
+# cgroup .. グループ化したプロセスのリソースを制限する。
+# ディレクトリによる階層構造でグループを表現する。
+# マウント先の確認
+mount -t cgroup
+# サブシステムごとの階層確認
+tree -d /sys/fs/cgroup/cpu
+# cgroupの操作方法 .. 以下の２種類
+# cgroupfsに対するファイル操作、cgroup-tools(libcgroup)パッケージに含まれるコマンドで操作
+#
+# cgroupの作成と確認 .. プロセスが属するグループは/proc/<PID>/cgroup で確認する
+UUID=$(uuidgen)
+sudo cgcreate -g cpu,memory:$UUID
+sudo cgexec -g cpu,memory:$UUID cat /proc/self/cgroup
+# cgroupのグループに属するプロセスを確認 ( <SUBSYSTEM>/[<SUBGROUP>]/cgroup.procs を参照することで確認する)
+sudo cgexec -g cpu:$UUID sleep 10 &
+cat /sys/fs/cgroup/cpu/$UUID/cgroup.procs
+
+
+
