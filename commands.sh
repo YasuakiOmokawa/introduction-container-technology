@@ -152,6 +152,18 @@ sudo cgexec -g cpu,memory:$UUID cat /proc/self/cgroup
 # cgroupのグループに属するプロセスを確認 ( <SUBSYSTEM>/[<SUBGROUP>]/cgroup.procs を参照することで確認する)
 sudo cgexec -g cpu:$UUID sleep 10 &
 cat /sys/fs/cgroup/cpu/$UUID/cgroup.procs
+# cgroupfsを直接操作してサブグループを作成し、CPUを制限する ( <SUBSYSTEM>/<SUBGROUP>/cgroup.procs にPIDを書き込むことで実現する )
+# tee .. 標準出力にも出して、ファイルにも書き込むコマンド
+UUID=$(uuidgen)
+sudo mkdir /sys/fs/cgroup/cpu/$UUID
+# 50000は単なる数字じゃなくて、使用量を制限するための値
+sudo echo 50000 | sudo tee /sys/fs/cgroup/cpu/$UUID/cpu.cfs_quota_us
+# PIDの書き込み
+echo $$ | sudo tee /sys/fs/cgroup/cpu/$UUID/cgroup.procs
+timeout 15s yes >/dev/null &
+# topコマンドで、yesコマンドのCPU使用量が50%で頭打ちになることを確認
 
+## Capabilityの学習
 
+# root権限を細分化してプロセスやファイルに設定する。
 
